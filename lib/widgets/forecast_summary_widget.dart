@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:weatherapp/scripts/forecast.dart' as forecast;
 import 'package:weatherapp/scripts/time.dart' as time;
 
+import 'package:flutter_svg/flutter_svg.dart';
+
+
 
 class ForecastSummaryWidget extends StatelessWidget {
   const ForecastSummaryWidget({
