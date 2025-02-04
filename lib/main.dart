@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'package:weatherapp/scripts/location.dart' as location;
+import 'package:weatherapp/scripts/forecast.dart' as forecast;
+import 'package:weatherapp/scripts/time.dart' as time;
+
+import 'package:weatherapp/widgets/forecast_summaries_widget.dart';
+import 'package:weatherapp/widgets/forecast_widget.dart';
+import 'package:weatherapp/widgets/location_widget.dart';
+
+
 void main() {
   runApp(const MyApp());
 }
@@ -7,11 +16,13 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  final String title = 'CS492 Weather App';
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CS492 Weather App',
+      title: title,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -31,7 +42,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'CS492 Weather App'),
+      home: MyHomePage(title: title),
     );
   }
 }
@@ -56,6 +67,77 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  List<forecast.Forecast> _forecastsHourly = [];
+  List<forecast.Forecast> _filteredForecastsHourly= [];
+  List<forecast.Forecast> _forecasts = [];
+  List<forecast.Forecast> _dailyForecasts = [];
+  forecast.Forecast? _activeForecast;
+  location.Location? _location;
+
+  @override
+  void initState() {
+    super.initState();
+    setLocation();
+
+  }
+
+  Future<List<forecast.Forecast>> getForecasts(location.Location currentLocation) async {
+    return forecast.getForecastFromPoints(currentLocation.latitude, currentLocation.longitude);
+  }
+
+
+  Future<List<forecast.Forecast>> getHourlyForecasts(location.Location currentLocation) async {
+    return forecast.getForecastHourlyFromPoints(currentLocation.latitude, currentLocation.longitude);
+  }
+
+  void setActiveForecast(int i){
+    setState(() {
+      _filteredForecastsHourly = getFilteredForecasts(i);
+      _activeForecast = _dailyForecasts[i];
+    });
+  }
+
+  void setActiveHourlyForecast(int i){
+    setState(() {
+      _activeForecast = _filteredForecastsHourly[i];
+    });
+  }
+
+  void setDailyForecasts(){
+    List<forecast.Forecast> dailyForecasts = [];
+    for (int i = 0; i < _forecasts.length-1; i+=2){
+      dailyForecasts.add(forecast.getForecastDaily(_forecasts[i], _forecasts[i+1]));
+      
+    }
+    setState(() {
+      _dailyForecasts = dailyForecasts;
+    });
+  }
+
+  List<forecast.Forecast> getFilteredForecasts(int i){
+    return _forecastsHourly.where((f)=>time.equalDates(f.startTime, _dailyForecasts[i].startTime)).toList();
+  }
+
+  void setLocation() async {
+    if (_location == null){
+      location.Location currentLocation = await location.getLocationFromGps();
+
+      List<forecast.Forecast> currentHourlyForecasts = await getHourlyForecasts(currentLocation);
+      List<forecast.Forecast> currentForecasts = await getForecasts(currentLocation);
+
+      setState(() {
+        _location = currentLocation;
+        _forecastsHourly = currentHourlyForecasts;
+        _forecasts = currentForecasts;
+        setDailyForecasts();
+        _filteredForecastsHourly = getFilteredForecasts(0);
+        _activeForecast = _forecastsHourly[0];
+        
+        
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -77,18 +159,12 @@ class _MyHomePageState extends State<MyHomePage> {
       body:Padding(
       padding: const EdgeInsets.all(16.0),
       child: Center(
-          child: Stack(
-            alignment: Alignment.center,
+          child: Column(
             children: [
-              Placeholder(
-                color: Colors.grey,
-                strokeWidth: 2.0,
-              ),
-              Text(
-                "Under Construction",
-                style: TextStyle(fontSize: 16, color: Colors.black),
-                textAlign: TextAlign.center,
-              ),
+              LocationWidget(location: _location),
+              _activeForecast != null ? ForecastWidget(forecast: _activeForecast!) : Text(""),
+              _dailyForecasts.isNotEmpty ? ForecastSummariesWidget(forecasts: _dailyForecasts, setActiveForecast: setActiveForecast) : Text(""),
+              _filteredForecastsHourly.isNotEmpty ? ForecastSummariesWidget(forecasts: _filteredForecastsHourly, setActiveForecast: setActiveHourlyForecast) : Text("")
             ],
           ),
         ),
