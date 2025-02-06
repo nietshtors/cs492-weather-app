@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:weatherapp/scripts/forecast.dart' as forecast;
 import 'package:weatherapp/scripts/time.dart' as time;
+import 'package:weatherapp/widgets/weather_icon_widget.dart';
 
-import 'package:flutter_svg/flutter_svg.dart';
+
 
 
 
@@ -19,7 +20,7 @@ class ForecastSummaryWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: 125,
+        height: 145,
         width: 100,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16.0), // Adjust the radius to control the roundness
@@ -35,7 +36,8 @@ class ForecastSummaryWidget extends StatelessWidget {
               child: Column(
                 children: [
                   ForecastNameWidget(forecast: _forecast),
-                  ShortForecastWidget(forecast: _forecast)
+                  WeatherIconWidget(iconPath: _forecast.getIconPath(), width: 50, height: 50)
+                  // ShortForecastWidget(forecast: _forecast)
                 ],
               ),
             ),
@@ -47,6 +49,8 @@ class ForecastSummaryWidget extends StatelessWidget {
     );
   }
 }
+
+
 
 
 
