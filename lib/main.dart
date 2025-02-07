@@ -118,24 +118,26 @@ class _MyHomePageState extends State<MyHomePage> {
     return _forecastsHourly.where((f)=>time.equalDates(f.startTime, _dailyForecasts[i].startTime)).toList();
   }
 
-  void setLocation() async {
-    if (_location == null){
-      location.Location currentLocation = await location.getLocationFromGps();
-
-      List<forecast.Forecast> currentHourlyForecasts = await getHourlyForecasts(currentLocation);
-      List<forecast.Forecast> currentForecasts = await getForecasts(currentLocation);
-
-      setState(() {
-        _location = currentLocation;
-        _forecastsHourly = currentHourlyForecasts;
-        _forecasts = currentForecasts;
-        setDailyForecasts();
-        _filteredForecastsHourly = getFilteredForecasts(0);
-        _activeForecast = _forecastsHourly[0];
-        
-        
-      });
+  void setLocation([List<String>? locationList]) async {
+    location.Location currentLocation;
+    if (locationList == null){
+      currentLocation = await location.getLocationFromGps();
     }
+    else {
+      currentLocation = await location.getLocationFromAddress(locationList[0], locationList[1], locationList[2]) as location.Location;
+    }
+
+    List<forecast.Forecast> currentHourlyForecasts = await getHourlyForecasts(currentLocation);
+    List<forecast.Forecast> currentForecasts = await getForecasts(currentLocation);
+
+    setState(() {
+      _location = currentLocation;
+      _forecastsHourly = currentHourlyForecasts;
+      _forecasts = currentForecasts;
+      setDailyForecasts();
+      _filteredForecastsHourly = getFilteredForecasts(0);
+      _activeForecast = _forecastsHourly[0];
+    });
   }
 
   @override
@@ -166,14 +168,18 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ),
         body:TabBarView(
-          children: [ForecastTabWidget(
-            location: _location, 
-            activeForecast: _activeForecast,
-            dailyForecasts: _dailyForecasts,
-            filteredForecastsHourly: _filteredForecastsHourly,
-            setActiveForecast: setActiveForecast,
-            setActiveHourlyForecast: setActiveHourlyForecast),
-          LocationTabWidget()]
+          children: [
+            ForecastTabWidget(
+              location: _location, 
+              activeForecast: _activeForecast,
+              dailyForecasts: _dailyForecasts,
+              filteredForecastsHourly: _filteredForecastsHourly,
+              setActiveForecast: setActiveForecast,
+              setActiveHourlyForecast: setActiveHourlyForecast
+            ),
+            LocationTabWidget(
+              setLocation: setLocation
+            )]
         ),
       ),
     );
@@ -183,13 +189,75 @@ class _MyHomePageState extends State<MyHomePage> {
 // TODO: Add a button to this widget that sets the active location to the phone's GPS location
 // TODO: Add 3 text fields for city state zip and a submit button that sets the location based on the user's entries
 class LocationTabWidget extends StatelessWidget {
-  const LocationTabWidget({
+  LocationTabWidget({
     super.key,
-  });
+    required Function setLocation
+  }) : _setLocation = setLocation;
+
+  final Function _setLocation;
+
+  String? state;
+  String? city;
+  String? zip;
 
   @override
   Widget build(BuildContext context) {
-    return Text("PLACEHOLDER!!!!!");
+    return Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Center(
+        child: Column(
+          children: [
+            FilledButton(
+              onPressed: () {
+                _setLocation();
+              },
+              child: const Text("Current Location"),
+            ),
+            Column(
+              children: [
+                TextFormField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "State"
+                  ),
+                  onChanged: (String? value) {
+                    state = value;
+                  },
+                ),
+                TextFormField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "City"
+                  ),
+                  onChanged: (String? value) {
+                    city = value;
+                  },
+                ),
+                TextFormField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "Zip"
+                  ),
+                  onChanged: (String? value) {
+                    zip = value;
+                  },
+                ),
+                FilledButton(
+                  onPressed: () {
+                    // print("$state $city $zip");
+                    if (state != null && city != null && zip != null) {
+                      List<String>? locationList = [state as String, city as String, zip as String];
+                      _setLocation(locationList);
+                    }
+                  },
+                  child: const Text("Submit"),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
   }
 }
 
