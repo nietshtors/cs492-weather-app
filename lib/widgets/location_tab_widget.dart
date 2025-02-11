@@ -11,7 +11,7 @@ import 'package:weatherapp/scripts/location.dart' as location;
 // 
 
 
-class LocationTabWidget extends StatelessWidget {
+class LocationTabWidget extends StatefulWidget {
   const LocationTabWidget({
     super.key,
     required Function setLocation,
@@ -22,12 +22,25 @@ class LocationTabWidget extends StatelessWidget {
   final location.Location? _location;
 
   @override
+  State<LocationTabWidget> createState() => _LocationTabWidgetState();
+}
+
+class _LocationTabWidgetState extends State<LocationTabWidget> {
+  List<location.Location> _savedLocations = [];
+  void _addLocation(location.Location location) {
+    setState(() {
+      _savedLocations.add(location);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        LocationDisplayWidget(activeLocation: _location),
-        LoctionInputWidget(setLocation: _setLocation),
-        ElevatedButton(onPressed: ()=>{_setLocation()},child: const Text("Get From GPS"))
+        LocationDisplayWidget(activeLocation: widget._location),
+        LocationInputWidget(setLocation: widget._setLocation),
+        ElevatedButton(onPressed: ()=>{widget._setLocation()},child: const Text("Get From GPS")),
+        LocationSavedWidget(savedLocations: _savedLocations, addLocation: _addLocation)
       ],
     );
   }
@@ -47,8 +60,8 @@ class LocationDisplayWidget extends StatelessWidget {
   }
 }
 
-class LoctionInputWidget extends StatefulWidget {
-  const LoctionInputWidget({
+class LocationInputWidget extends StatefulWidget {
+  const LocationInputWidget({
     super.key,
     required Function setLocation
   }) : _setLocation = setLocation;
@@ -56,10 +69,10 @@ class LoctionInputWidget extends StatefulWidget {
   final Function _setLocation;
 
   @override
-  State<LoctionInputWidget> createState() => _LoctionInputWidgetState();
+  State<LocationInputWidget> createState() => _LocationInputWidgetState();
 }
 
-class _LoctionInputWidgetState extends State<LoctionInputWidget> {
+class _LocationInputWidgetState extends State<LocationInputWidget> {
 
   // values
   String _city = "";
@@ -99,9 +112,6 @@ class _LoctionInputWidgetState extends State<LoctionInputWidget> {
       _zip = controller.text;
     });
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -150,6 +160,25 @@ class LocationTextWidget extends StatelessWidget {
           border: OutlineInputBorder(),
           labelText: _text
       )),
+    );
+  }
+}
+
+class LocationSavedWidget extends StatelessWidget {
+  const LocationSavedWidget({
+    super.key,
+    required List<location.Location> savedLocations,
+    required Function addLocation,
+  }): _savedLocations = savedLocations, _addLocation = addLocation;
+
+  final List<location.Location> _savedLocations;
+  final Function _addLocation;
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [],
     );
   }
 }
