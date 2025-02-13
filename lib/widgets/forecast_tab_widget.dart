@@ -39,7 +39,7 @@ class ForecastTabWidget extends StatelessWidget {
         child: Column(
           children: [
             LocationWidget(location: _location),
-            _activeForecast != null ? ForecastWidget(forecast: _activeForecast!) : Text(""),
+            _activeForecast != null ? ForecastWidget(forecast: _activeForecast) : Text(""),
             _dailyForecasts.isNotEmpty ? ForecastSummariesWidget(forecasts: _dailyForecasts, setActiveForecast: _setActiveForecast) : Text(""),
             _filteredForecastsHourly.isNotEmpty ? ForecastSummariesWidget(forecasts: _filteredForecastsHourly, setActiveForecast: _setActiveHourlyForecast) : Text("")
           ],

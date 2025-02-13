@@ -51,8 +51,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     if (_location == null){
-      setLocation();
+      setInitialLocation();
     }
+  }
+
+  void setInitialLocation() async {
+    setLocation(await location.getLocationFromGps());
   }
 
   Future<List<forecast.Forecast>> getForecasts(location.Location currentLocation) async {
@@ -92,29 +96,26 @@ class _MyHomePageState extends State<MyHomePage> {
     return _forecastsHourly.where((f)=>time.equalDates(f.startTime, _dailyForecasts[i].startTime)).toList();
   }
 
-  void setLocation([List<String>? locationList]) async {
-    setState(() {
-      _location = null;
-    });
-    location.Location currentLocation;
-    if (locationList == null){
-      currentLocation = await location.getLocationFromGps();
+  void setLocation(location.Location? currentLocation) async {
+    if (currentLocation == null){
+      setState(() {
+        _location = null;
+      });
     }
     else {
-      currentLocation = await location.getLocationFromAddress(locationList[0], locationList[1], locationList[2]) as location.Location;
-    }
+      List<forecast.Forecast> currentHourlyForecasts = await getHourlyForecasts(currentLocation);
+      List<forecast.Forecast> currentForecasts = await getForecasts(currentLocation);
+      setState((){
+        _location = currentLocation;
+        _location = currentLocation;
+        _forecastsHourly = currentHourlyForecasts;
+        _forecasts = currentForecasts;
+        setDailyForecasts();
+        _filteredForecastsHourly = getFilteredForecasts(0);
+        _activeForecast = _forecastsHourly[0];
+      });
+      }
 
-    List<forecast.Forecast> currentHourlyForecasts = await getHourlyForecasts(currentLocation);
-    List<forecast.Forecast> currentForecasts = await getForecasts(currentLocation);
-
-    setState(() {
-      _location = currentLocation;
-      _forecastsHourly = currentHourlyForecasts;
-      _forecasts = currentForecasts;
-      setDailyForecasts();
-      _filteredForecastsHourly = getFilteredForecasts(0);
-      _activeForecast = _forecastsHourly[0];
-    });
   }
 
   @override
