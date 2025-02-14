@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:weatherapp/scripts/location.dart' as location;
 
 // TODO:
@@ -47,6 +51,7 @@ class _LocationTabWidgetState extends State<LocationTabWidget> {
     setState(() {
       _savedLocations.add(location);
     });
+    _savedLocations.map((loc) => (loc.toJson())).toList();
   }
 
   @override
@@ -212,4 +217,39 @@ class _LocationTextWidgetState extends State<LocationTextWidget> {
       )),
     );
   }
+}
+
+class Storage {
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/savedLocations.txt');
+  }
+
+  Future<List<location.Location>> readLocations() async {
+    try {
+      final file = await _localFile;
+
+      // Read the file
+      final jsonString = await file.readAsString();
+      List<Map<String, dynamic>> json = await jsonDecode(jsonString);
+      return json.map((loc) => {location.Location.fromJson(loc)}).toList();
+    } catch (e) {
+      // If encountering an error, return 0
+      return 0;
+    }
+  }
+
+  Future<File> writeLocations(Map<String, dynamic> json) async {
+    final file = await _localFile;
+
+    // Write the file
+    return file.writeAsString('$json');
+  }
+
 }
