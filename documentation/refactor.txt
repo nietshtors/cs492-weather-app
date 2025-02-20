@@ -1,7 +1,19 @@
 Project Name: CS492 Weather App
 Refactor Date: 2/20/2025
-Refactorers: [your name1], [your name2]
+Refactorers: Seth Rothstein, Kevin Walsh
 
 Template:
-Purpose of the Refactor: [Explain why the refactoring was necessary. Example: "The purpose of this refactor was to simplify the authentication logic and improve readability."]
-Scope: [Define which parts of the project were refactored. Example: "Refactored the user authentication module and the database query handling."]
+Purpose of the Refactor: Removing commented out code
+Scope: location_tab_widget.dart 
+
+Purpose of the Refactor: Fixing naming conventions
+Scope: fixed import name to snake case to adhere to naming conventions for dart
+
+Purpose of the Refactor: Seperated widgets into subdirectories for better organization and did the same to scripts
+Scope: widgets and scripts folder
+
+Purpose of the Refactor: Combined setLocationFromAddress and setLocationFromGPS into one function to remove redundant code
+Scope: location_tab_widget.dart
+
+Purpose of the Refactor: deleted tests.dart as it was deprecated
+Scope: tests.dart
