@@ -11,7 +11,7 @@ class LocationWidget extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return Text("${_location?.city ?? "city"}, ${_location?.state ?? "state"} ${_location?.zip ?? "zip"}");
+    return SizedBox(child: Text("${_location?.city ?? "city"}, ${_location?.state ?? "state"} ${_location?.zip ?? "zip"}"));
   }
 }
 

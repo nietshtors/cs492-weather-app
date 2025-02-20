@@ -7,6 +7,9 @@ import 'package:weatherapp/widgets/location_widget.dart';
 import 'package:weatherapp/widgets/forecast_summaries_widget.dart';
 import 'package:weatherapp/widgets/forecast_widget.dart';
 
+
+
+
 class ForecastTabWidget extends StatelessWidget {
   const ForecastTabWidget({
     super.key,

@@ -1,0 +1,1 @@
+DELETE FROM location_entries WHERE zip = ?;
