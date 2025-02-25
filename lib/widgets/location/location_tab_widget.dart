@@ -1,110 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:weatherapp/scripts/location.dart' as location;
-import 'package:weatherapp/scripts/location_storage.dart' as locationStorage;
-import 'package:weatherapp/scripts/location_database.dart' as location_database;
+import 'package:weatherapp/models/location.dart' as location;
+import 'package:provider/provider.dart';
+import 'package:weatherapp/providers/location_provider.dart';
 
 class LocationTabWidget extends StatefulWidget {
-  const LocationTabWidget(
-      {super.key,
-      required Function setLocation,
-      required location.Location? activeLocation})
-      : _setLocation = setLocation,
-        _location = activeLocation;
-
-  final Function _setLocation;
-  final location.Location? _location;
+  const LocationTabWidget({super.key});
 
   @override
   State<LocationTabWidget> createState() => _LocationTabWidgetState();
 }
 
 class _LocationTabWidgetState extends State<LocationTabWidget> {
-  final locationStorage.LocationStorage ls = locationStorage.LocationStorage();
-
-  List<location.Location> _savedLocations = [];
-
-  late location_database.LocationDatabase _db;
-
   var _editMode = false;
-
-  void _setLocationFromAddress(String city, String state, String zip) async {
-    // set location to null temporarily while it finds a new location
-    widget._setLocation(null);
-    location.Location currentLocation = await location.getLocationFromAddress(
-        city, state, zip) as location.Location;
-    widget._setLocation(currentLocation);
-    _addLocation(currentLocation);
-  }
-
-  void _setLocationFromGps() async {
-    // set location to null temporarily while it finds a new location
-    widget._setLocation(null);
-    location.Location currentLocation = await location.getLocationFromGps();
-    widget._setLocation(currentLocation);
-    _addLocation(currentLocation);
-  }
-
-  // previous json implementation
-  // void _addLocation(location.Location location) async{
-  //   setState(() {
-  //     _savedLocations.add(location);
-  //   });
-
-  //   await ls.writeLocations(_savedLocations);
-
-  // }
-
-  void _addLocation(location.Location location) async {
-    if (!_savedLocations.contains(location)){
-    setState(() {
-      _savedLocations.add(location);
-    });
-
-    _db.insertLocation(location);
-    }
-
-  }
-
-  void _deleteLocation(location.Location location) async {
-    setState(() {
-      _savedLocations.removeWhere((savedLocation) => savedLocation == location);
-    });
-
-    _db.deleteLocation(location);
-  }
-
-  @override
-  void initState() {
-    // Get initial locations
-    super.initState();
-    _loadLocations();
-  }
-
-  void _loadLocations() async {
-    _db = await location_database.LocationDatabase.open();
-    List<location.Location> locations = await _db.getLocations();
-    setState(() {
-      _savedLocations = locations;
-    });
-  }
-
-  // previous json implementation
-  // void _loadLocations() async {
-  //   List<location.Location> locations = await ls.readLocations();
-  //   setState(() {
-  //     _savedLocations = locations;
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
+    var locationProvider = Provider.of<LocationProvider>(context);
+
     return Column(
       children: [
-        LocationDisplayWidget(activeLocation: widget._location),
+        LocationDisplayWidget(activeLocation: locationProvider.activeLocation),
         LoctionInputWidget(
-            setLocation: _setLocationFromAddress), // pass in _addLocation
+            setLocation: locationProvider.setLocationFromAddress),
         ElevatedButton(
-            onPressed: () => {_setLocationFromGps()},
+            onPressed: () => {locationProvider.setLocationFromGps},
             child: const Text("Get From GPS")),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -120,10 +39,9 @@ class _LocationTabWidgetState extends State<LocationTabWidget> {
           ],
         ),
         SavedLocationsWidget(
-            locations: _savedLocations,
-            setLocation: widget._setLocation,
-            editMode: _editMode,
-            deleteLocation: _deleteLocation)
+          locationService: locationProvider,
+          editMode: _editMode,
+        )
       ],
     );
   }
@@ -132,27 +50,23 @@ class _LocationTabWidgetState extends State<LocationTabWidget> {
 class SavedLocationsWidget extends StatelessWidget {
   const SavedLocationsWidget(
       {super.key,
-      required List<location.Location> locations,
-      required Function setLocation,
-      required Function deleteLocation,
+      required LocationProvider locationService,
       required bool editMode})
-      : _locations = locations,
-        _setLocation = setLocation,
-        _deleteLocation = deleteLocation,
+      : _locationService = locationService,
         _editMode = editMode;
 
-  final List<location.Location> _locations;
-  final Function _setLocation;
-  final Function _deleteLocation;
+  final LocationProvider _locationService;
   final bool _editMode;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: _locations
+      children: _locationService.savedLocations
           .map((loc) => _editMode
-              ? SavedLocationEditWidget(loc: loc, delete: _deleteLocation)
-              : SavedLocationWidget(loc: loc, setLocation: _setLocation))
+              ? SavedLocationEditWidget(
+                  loc: loc, delete: _locationService.deleteLocation)
+              : SavedLocationWidget(
+                  loc: loc, setLocation: _locationService.setLocation))
           .toList(),
     );
   }
@@ -192,9 +106,7 @@ class SavedLocationWidget extends StatelessWidget {
 
 class SavedLocationEditWidget extends StatelessWidget {
   const SavedLocationEditWidget(
-      {super.key,
-      required location.Location loc,
-      required Function delete})
+      {super.key, required location.Location loc, required Function delete})
       : _loc = loc,
         _delete = delete;
 
@@ -210,15 +122,19 @@ class SavedLocationEditWidget extends StatelessWidget {
           border: Border.all(color: Colors.red, width: 2)),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: SizedBox(width: 250, child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("${_loc.city}, ${_loc.state} ${_loc.zip}"),
-            GestureDetector(
-              onTap: (){_delete(_loc);}, 
-              child: Icon(Icons.delete, color: Colors.red))
-          ],
-        )),
+        child: SizedBox(
+            width: 250,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("${_loc.city}, ${_loc.state} ${_loc.zip}"),
+                GestureDetector(
+                    onTap: () {
+                      _delete(_loc);
+                    },
+                    child: Icon(Icons.delete, color: Colors.red))
+              ],
+            )),
       ),
     );
   }

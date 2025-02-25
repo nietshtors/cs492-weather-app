@@ -8,7 +8,9 @@ class WeatherIconWidget extends StatelessWidget {
     required String iconPath,
     required double height,
     required double width,
-  }) : _iconPath = iconPath, _height = height, _width = width;
+  })  : _iconPath = iconPath,
+        _height = height,
+        _width = width;
 
   final String _iconPath;
   final double _height;

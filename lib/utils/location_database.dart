@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'package:weatherapp/scripts/location.dart' as location;
+import 'package:weatherapp/models/location.dart' as location;
 
 const dbName = 'location.db';
 const sqlCreateTable = 'assets/sql/create.sql';
@@ -15,13 +15,13 @@ class LocationDatabase {
   LocationDatabase({required Database db}) : _db = db;
 
   static Future<LocationDatabase> open() async {
-    final Database db = await openDatabase(dbName, version: 1, 
-      onCreate: (Database db, int version) async {
-        String query = await rootBundle.loadString(sqlCreateTable);
-        await db.execute(query);
-      });
+    final Database db = await openDatabase(dbName, version: 1,
+        onCreate: (Database db, int version) async {
+      String query = await rootBundle.loadString(sqlCreateTable);
+      await db.execute(query);
+    });
 
-      return LocationDatabase(db: db);
+    return LocationDatabase(db: db);
   }
 
   void close() async {
@@ -31,14 +31,23 @@ class LocationDatabase {
   Future<List<location.Location>> getLocations() async {
     String query = await rootBundle.loadString(sqlGetAll);
     List<Map> locationEntries = await _db.rawQuery(query);
-    return locationEntries.map((entry) => location.Location.fromJson(Map<String, dynamic>.from(entry))).toList();
+    return locationEntries
+        .map((entry) =>
+            location.Location.fromJson(Map<String, dynamic>.from(entry)))
+        .toList();
   }
 
   void insertLocation(location.Location location) async {
     String query = await rootBundle.loadString(sqlInsert);
 
     _db.transaction((txn) async {
-      await txn.rawInsert(query, [location.city, location.state, location.zip, location.latitude, location.longitude]);
+      await txn.rawInsert(query, [
+        location.city,
+        location.state,
+        location.zip,
+        location.latitude,
+        location.longitude
+      ]);
     });
   }
 

@@ -1,10 +1,12 @@
+// CURRENTLY UNUSED
+// location_database.dart is used instead
+
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
-import 'package:weatherapp/scripts/location.dart' as location;
-
+import 'package:weatherapp/models/location.dart' as location;
 
 class LocationStorage {
   // Getting the local path to save the file
@@ -28,7 +30,9 @@ class LocationStorage {
 
     // Decode the JSON data to a List of Map objects, then convert each Map to a Location object
     List<dynamic> jsonData = json.decode(contents);
-    List<location.Location> locations = jsonData.map((jsonLocation) => location.Location.fromJson(jsonLocation)).toList();
+    List<location.Location> locations = jsonData
+        .map((jsonLocation) => location.Location.fromJson(jsonLocation))
+        .toList();
 
     return locations;
   }
@@ -39,9 +43,8 @@ class LocationStorage {
     final file = await _localFile;
 
     // Convert each Location object to a JSON map and encode it to a JSON string
-    List<Map<String, dynamic>> jsonData = locations
-        .map((location) => location.toJson())
-        .toList();
+    List<Map<String, dynamic>> jsonData =
+        locations.map((location) => location.toJson()).toList();
     String jsonString = json.encode(jsonData);
 
     // Write the JSON string to the file
